@@ -1,0 +1,60 @@
+version: "3"
+services:
+  notification-service: 
+    build: 
+      context: .
+      args: 
+        NODE_ENV: development
+    ports:
+      - "4000:4000"
+    depends_on: 
+      - mongo
+  mongo: 
+    image: mongo
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=meryem
+      - MONGO_INITDB_ROOT_PASSWORD=123456
+      - MONGO_INITDB_DATABASE=Users.Users
+    volumes:
+      - mongo-db:/data/db
+    ports:
+      - '27017:27017'
+
+  zookeeper:
+    image: wurstmeister/zookeeper:latest
+    networks: 
+      - kafka_network
+    hostname: 'zookeeper'
+    ports:
+      - "2181:2181"
+   
+  kafka:
+    image: wurstmeister/kafka:latest
+    networks:
+      - kafka_network
+    links:
+      - zookeeper
+    ports:
+      - 9092:9092
+    hostname: 'kafka'
+    environment:
+      - KAFKA_ADVERTISED_HOST_NAME=kafka   
+      - KAFKA_ADVERTISED_PORT=9092
+      - KAFKA_ZOOKEEPER_CONNECT=zookeeper:2181
+      - KAFKA_CREATE_TOPICS=Notifications
+      - KAFKA_NUM_PARTITIONS=4
+  kafdrop:
+    image: obsidiandynamics/kafdrop
+    restart: "no"
+    environment:
+      KAFKA_BROKERCONNECT: "kafka:9092"
+    ports:
+      - 9011:9000
+    depends_on:
+      - kafka
+
+volumes:
+  mongo-db:
+networks:
+  kafka_network:
+    name: notificationservice_default

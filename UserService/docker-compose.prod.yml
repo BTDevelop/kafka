@@ -1,0 +1,44 @@
+version: "3"
+services:
+  nginx:
+    image: nginx:stable-alpine
+    ports:
+      - "80:80"
+  node-app:
+    build:
+      context: .
+      args: 
+        NODE_ENV: production
+    environment:
+      - NODE_ENV=production
+    command: node index.js
+  zookeeper:
+    image: wurstmeister/zookeeper:latest
+    hostname: 'zookeeper'
+    ports:
+      - 2181:2181
+
+ # kafka single node     
+  kafka:
+    image: wurstmeister/kafka:latest
+    links:
+      - zookeeper
+    ports:
+      - 9093:9093
+    hostname: 'kafka'
+    environment:
+      - KAFKA_ADVERTISED_HOST_NAME=kafka   
+      - KAFKA_ADVERTISED_PORT=9093
+      - KAFKA_ZOOKEEPER_CONNECT=zookeeper:2181
+      - KAFKA_CREATE_TOPICS=test_topic:1:1
+
+#kafdrop for topic/msg visualization
+  kafdrop:
+    image: obsidiandynamics/kafdrop
+    restart: "no"
+    environment:
+      KAFKA_BROKERCONNECT: "kafka:9093"
+    ports:
+      - 9011:9000
+    depends_on:
+      - kafka
