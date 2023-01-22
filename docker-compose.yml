@@ -1,0 +1,72 @@
+version: '3'
+services:
+  user-service:
+    build:
+      context: ./UserService
+    restart: "always"
+    ports:
+      - "4010:3000"
+    links:
+      - kafka
+      - zookeeper
+
+  notification-service:
+    build:
+      context: ./NotificationService
+    restart: "always"
+    ports:
+      - "4011:3000"
+    links:
+      - kafka
+      - zookeeper  
+# Zookeeper, single node
+  zookeeper:
+    image: wurstmeister/zookeeper:latest
+    hostname: 'zookeeper'
+    ports:
+      - 2181:2181
+
+ # kafka single node     
+  kafka:
+    image: wurstmeister/kafka:latest
+    links:
+      - zookeeper
+    ports:
+      - 9092:9092
+    hostname: 'kafka'
+    environment:
+      - KAFKA_ADVERTISED_HOST_NAME=kafka   
+      - KAFKA_ADVERTISED_PORT=9092
+      - KAFKA_ZOOKEEPER_CONNECT=zookeeper:2181
+      - KAFKA_CREATE_TOPICS=test_topic:1:1
+
+#kafdrop for topic/msg visualization
+  kafdrop:
+    image: obsidiandynamics/kafdrop
+    restart: "no"
+    environment:
+      KAFKA_BROKERCONNECT: "kafka:9092"
+    ports:
+      - 9011:9000
+    depends_on:
+      - kafka
+
+  mongo: 
+    image: mongo
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=meryem
+      - MONGO_INITDB_ROOT_PASSWORD=123456
+      - MONGO_INITDB_DATABASE=Users.Users
+    volumes:
+      - mongo-db:/data/db
+    ports:
+      - '27017:27017'
+
+  redis:
+    image: redis
+
+volumes:
+  mongo-db:
+networks:
+    default:
+        name: user-network

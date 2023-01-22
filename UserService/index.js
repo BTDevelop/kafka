@@ -22,11 +22,11 @@ app.use(cors())
 
 
 
-const {
-  REDIS_URL,
-  REDIS_PORT,
-  SESSION_SECRET,
-} = require("./config/config");
+const 
+  REDIS_URL ="redis",
+  REDIS_PORT="6379",
+  SESSION_SECRET="1234";
+// } = require("./config/config");
 
 const userRouter = require("./routes/userRoutes");
 

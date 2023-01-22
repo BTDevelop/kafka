@@ -4,7 +4,7 @@ const { Kafka } = require('kafkajs')
 require('dotenv').config();
 
 const kafkaClient = new Kafka({
-  clientId: process.env.SERVICE_NAME ,
+  clientId: process.env.SERVICE_NAME,
   brokers: ['kafka:9092'],
 })
 
